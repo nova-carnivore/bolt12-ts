@@ -21,8 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **CI configuration** — Fixed branch triggers from `main` to `master` to match actual default branch
-- **Node.js support** — Extended support down to Node.js 18 (LTS); CI now tests against Node 18, 20, 22
-- **Platform support** — Updated from "Node.js 20+" to "Node.js 18+"
+- **Node.js support** — Updated to Node.js 20+ (Node 18 EOL April 2025); CI now tests against Node 20, 22, 24
+- **README** — Added professional badges (CI, npm, license, TypeScript, Node.js)
 
 ## [0.1.0] - 2025-02-15
 

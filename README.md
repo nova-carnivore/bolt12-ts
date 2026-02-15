@@ -1,5 +1,11 @@
 # bolt12-ts
 
+[![CI](https://github.com/nova-carnivore/bolt12-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/nova-carnivore/bolt12-ts/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/bolt12-ts.svg)](https://www.npmjs.com/package/bolt12-ts)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
+
 Modern TypeScript BOLT 12 Lightning Network offer/invoice encoder/decoder with zero vulnerable dependencies.
 
 Supports encoding and decoding of BOLT 12 **Offers** (`lno`), **Invoice Requests** (`lnr`), and **Invoices** (`lni`) with full BIP-340 Schnorr signature support and Merkle tree construction.
@@ -12,7 +18,7 @@ Supports encoding and decoding of BOLT 12 **Offers** (`lno`), **Invoice Requests
 - **Bech32 encoding** — Spec-compliant (no checksum, per BOLT 12)
 - **Blinded paths** — Full encode/decode support
 - **Zero vulnerable dependencies** — Uses only `@noble/curves` and `@noble/hashes`
-- **Cross-platform** — Node.js 18+, Bun, Deno, browsers
+- **Cross-platform** — Node.js 20+, Bun, Deno, browsers
 - **TypeScript strict mode** — Full type safety with comprehensive JSDoc
 
 ## Installation
@@ -359,7 +365,7 @@ These features are part of the Lightning protocol layer, not the BOLT 12 encodin
 
 | Platform | Status |
 |----------|--------|
-| Node.js 18+ | ✅ Tested (18, 20, 22) |
+| Node.js 20+ | ✅ Tested (20, 22, 24) |
 | Bun | ✅ Tested |
 | Deno | ✅ Compatible |
 | Browsers (via bundler) | ✅ Compatible |

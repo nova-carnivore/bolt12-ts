@@ -52,7 +52,7 @@
   },
   "homepage": "https://github.com/nova-carnivore/bolt12-ts#readme",
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
