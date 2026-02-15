@@ -5,7 +5,7 @@
 // Zero vulnerable dependencies. Uses @noble/curves and @noble/hashes for all cryptography.
 
 // ── Decoding ───────────────────────────────────────────────────
-export { decodeBolt12 } from './decode.js';
+export { decodeBolt12, decodeInvoiceError } from './decode.js';
 
 // ── Encoding ───────────────────────────────────────────────────
 export {
@@ -13,6 +13,7 @@ export {
   encodeOffer,
   encodeInvoiceRequest,
   encodeInvoice,
+  encodeInvoiceError,
   encodeBlindedPaths,
   encodeBlindedPayInfoArray,
 } from './encode.js';
@@ -20,6 +21,7 @@ export type {
   OfferEncodeOptions,
   InvoiceRequestEncodeOptions,
   InvoiceEncodeOptions,
+  InvoiceErrorEncodeOptions,
 } from './encode.js';
 
 // ── Signatures ─────────────────────────────────────────────────
@@ -42,6 +44,7 @@ export type {
   DecodedOffer,
   DecodedInvoiceRequest,
   DecodedInvoice,
+  InvoiceError,
   BlindedPath,
   OnionMessageHop,
   BlindedPayInfo,

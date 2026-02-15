@@ -580,6 +580,72 @@ export function encodeInvoice(options: InvoiceEncodeOptions): string {
   return encodeBolt12({ hrp: Bech32mPrefix.Invoice, tlvs });
 }
 
+// ── Invoice Error encoding ─────────────────────────────────────
+
+/**
+ * Options for encoding a BOLT 12 Invoice Error.
+ */
+export interface InvoiceErrorEncodeOptions {
+  /** Human-readable error message. Required. */
+  error: string;
+  /** The TLV field number in the invoice/invoice_request that caused the error. */
+  erroneousField?: bigint;
+  /** Suggested replacement value for the erroneous field. */
+  suggestedValue?: Uint8Array;
+}
+
+/**
+ * Encodes a BOLT 12 Invoice Error as a raw TLV stream (Uint8Array).
+ *
+ * Invoice errors are sent via onion messages and are NOT bech32-encoded.
+ * They use their own TLV type range (1, 3, 5) per the BOLT 12 spec.
+ *
+ * Per spec:
+ * - TLV type 1: `erroneous_field` (tu64) — which TLV field caused the error
+ * - TLV type 3: `suggested_value` (variable bytes) — suggested correction
+ * - TLV type 5: `error` (utf8) — human-readable error message
+ *
+ * @param options - The invoice error fields to encode.
+ * @returns The encoded TLV stream as raw bytes.
+ * @throws If required fields are missing or constraints are violated.
+ *
+ * @example
+ * ```ts
+ * const errorBytes = encodeInvoiceError({
+ *   error: 'Unknown offer',
+ * });
+ *
+ * const errorWithField = encodeInvoiceError({
+ *   error: 'Amount too low',
+ *   erroneousField: 82n, // invreq_amount
+ *   suggestedValue: encodeTu64(100000n),
+ * });
+ * ```
+ */
+export function encodeInvoiceError(options: InvoiceErrorEncodeOptions): Uint8Array {
+  if (!options.error || options.error.length === 0) {
+    throw new Error('Invoice error must have an error message');
+  }
+  if (options.suggestedValue !== undefined && options.erroneousField === undefined) {
+    throw new Error('Invoice error with suggested_value must also set erroneous_field');
+  }
+
+  const tlvs: TlvEntry[] = [];
+
+  if (options.erroneousField !== undefined) {
+    tlvs.push(tlv(1, encodeTu64(options.erroneousField)));
+  }
+  if (options.suggestedValue !== undefined) {
+    tlvs.push(tlv(3, options.suggestedValue));
+  }
+  tlvs.push(tlv(5, utf8ToBytes(options.error)));
+
+  // Sort TLVs by type (ascending)
+  tlvs.sort((a, b) => Number(a.type - b.type));
+
+  return encodeTlvStream(tlvs);
+}
+
 // ── BIP-353 name encoding ──────────────────────────────────────
 
 /**

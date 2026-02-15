@@ -11,6 +11,7 @@ import {
   DecodedOffer,
   DecodedInvoiceRequest,
   DecodedInvoice,
+  InvoiceError,
   BlindedPath,
   OnionMessageHop,
   BlindedPayInfo,
@@ -642,4 +643,62 @@ function parseFallbackAddresses(bytes: Uint8Array): FallbackAddress[] {
   }
 
   return result;
+}
+
+// ── Invoice Error Decoding ─────────────────────────────────────
+
+/**
+ * Decodes a BOLT 12 Invoice Error from raw TLV bytes.
+ *
+ * Invoice errors are received via onion messages and are NOT bech32-encoded.
+ * They use their own TLV type range per the BOLT 12 spec:
+ * - TLV type 1: `erroneous_field` (tu64) — which TLV field caused the error
+ * - TLV type 3: `suggested_value` (variable bytes) — suggested correction
+ * - TLV type 5: `error` (utf8) — human-readable error message
+ *
+ * @param bytes - The raw TLV-encoded invoice error bytes.
+ * @returns The decoded InvoiceError object.
+ * @throws If the error message is missing or the TLV stream is malformed.
+ *
+ * @example
+ * ```ts
+ * const invoiceError = decodeInvoiceError(rawBytes);
+ * console.log('Error:', invoiceError.error);
+ * if (invoiceError.erroneousField !== undefined) {
+ *   console.log('Field:', invoiceError.erroneousField);
+ * }
+ * ```
+ */
+export function decodeInvoiceError(bytes: Uint8Array): InvoiceError {
+  const tlvEntries = decodeTlvStream(bytes);
+
+  const invoiceError: InvoiceError = {
+    error: '',
+    tlvs: tlvEntries,
+  };
+
+  for (const tlv of tlvEntries) {
+    switch (Number(tlv.type)) {
+      case 1: // erroneous_field
+        invoiceError.erroneousField = decodeTu64(tlv.value);
+        break;
+      case 3: // suggested_value
+        invoiceError.suggestedValue = tlv.value;
+        break;
+      case 5: // error
+        invoiceError.error = bytesToUtf8(tlv.value);
+        break;
+    }
+  }
+
+  if (!invoiceError.error || invoiceError.error.length === 0) {
+    throw new Error('Invoice error must have an error message (TLV type 5)');
+  }
+
+  // Per spec: suggested_value requires erroneous_field
+  if (invoiceError.suggestedValue !== undefined && invoiceError.erroneousField === undefined) {
+    throw new Error('Invoice error has suggested_value without erroneous_field');
+  }
+
+  return invoiceError;
 }

@@ -5,11 +5,13 @@ import { describe, it } from 'node:test';
 import {
   // Decoding
   decodeBolt12,
+  decodeInvoiceError,
   // Encoding
   encodeBolt12,
   encodeOffer,
   encodeInvoiceRequest,
   encodeInvoice,
+  encodeInvoiceError,
   encodeBlindedPaths,
   encodeBlindedPayInfoArray,
   // Signatures
@@ -46,6 +48,7 @@ import {
 describe('Public API Exports', () => {
   it('should export all decoding functions', () => {
     assert.strictEqual(typeof decodeBolt12, 'function');
+    assert.strictEqual(typeof decodeInvoiceError, 'function');
   });
 
   it('should export all encoding functions', () => {
@@ -53,6 +56,7 @@ describe('Public API Exports', () => {
     assert.strictEqual(typeof encodeOffer, 'function');
     assert.strictEqual(typeof encodeInvoiceRequest, 'function');
     assert.strictEqual(typeof encodeInvoice, 'function');
+    assert.strictEqual(typeof encodeInvoiceError, 'function');
     assert.strictEqual(typeof encodeBlindedPaths, 'function');
     assert.strictEqual(typeof encodeBlindedPayInfoArray, 'function');
   });

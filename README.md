@@ -12,7 +12,7 @@ Supports encoding and decoding of BOLT 12 **Offers** (`lno`), **Invoice Requests
 - **Bech32 encoding** — Spec-compliant (no checksum, per BOLT 12)
 - **Blinded paths** — Full encode/decode support
 - **Zero vulnerable dependencies** — Uses only `@noble/curves` and `@noble/hashes`
-- **Cross-platform** — Node.js 20+, Bun, Deno, browsers
+- **Cross-platform** — Node.js 18+, Bun, Deno, browsers
 - **TypeScript strict mode** — Full type safety with comprehensive JSDoc
 
 ## Installation
@@ -168,6 +168,42 @@ if (decoded.prefix === 'lnr') {
 }
 ```
 
+### Invoice Errors
+
+Invoice errors are sent via onion messages to indicate problems with an `invoice_request` or `invoice`. They use raw TLV encoding (not bech32).
+
+```typescript
+import { encodeInvoiceError, decodeInvoiceError, encodeTu64 } from 'bolt12-ts';
+
+// Simple error message
+const errorBytes = encodeInvoiceError({
+  error: 'Unknown offer',
+});
+
+// Error pointing to a specific field
+const fieldError = encodeInvoiceError({
+  error: 'Amount too low',
+  erroneousField: 82n,  // invreq_amount TLV type
+});
+
+// Error with a suggested correction
+const suggestedError = encodeInvoiceError({
+  error: 'Amount must be at least 100000 msat',
+  erroneousField: 82n,
+  suggestedValue: encodeTu64(100000n),
+});
+
+// Decoding an invoice error received via onion message
+const decoded = decodeInvoiceError(rawErrorBytes);
+console.log('Error:', decoded.error);
+if (decoded.erroneousField !== undefined) {
+  console.log('Problem field TLV type:', decoded.erroneousField);
+}
+if (decoded.suggestedValue) {
+  console.log('Suggested value:', decoded.suggestedValue);
+}
+```
+
 ### Working with Blinded Paths
 
 ```typescript
@@ -204,6 +240,7 @@ const payInfo: BlindedPayInfo = {
 | Function | Description |
 |----------|-------------|
 | `decodeBolt12(str)` | Decode any BOLT 12 string (offer/invreq/invoice) |
+| `decodeInvoiceError(bytes)` | Decode a raw TLV invoice error |
 
 ### Encoding
 
@@ -212,6 +249,7 @@ const payInfo: BlindedPayInfo = {
 | `encodeOffer(options)` | Encode a BOLT 12 offer (unsigned) |
 | `encodeInvoiceRequest(options)` | Encode and sign a BOLT 12 invoice request |
 | `encodeInvoice(options)` | Encode and sign a BOLT 12 invoice |
+| `encodeInvoiceError(options)` | Encode an invoice error as raw TLV bytes |
 | `encodeBolt12({ hrp, tlvs })` | Low-level: encode raw TLVs with HRP |
 
 ### Signatures
@@ -266,6 +304,7 @@ This library implements [BOLT 12](https://github.com/lightning/bolts/blob/master
 | Offer encoding/decoding | ✅ Stable |
 | Invoice Request encoding/decoding | ✅ Stable |
 | Invoice encoding/decoding | ✅ Stable |
+| Invoice Error encoding/decoding | ✅ Stable |
 | BIP-340 Schnorr signatures | ✅ Stable |
 | Merkle tree signature verification | ✅ Stable |
 | Blinded paths | ✅ Stable |
@@ -274,13 +313,53 @@ This library implements [BOLT 12](https://github.com/lightning/bolts/blob/master
 | Bech32 encoding (no checksum) | ✅ Stable |
 | `+` concatenation support | ✅ Stable |
 | Fallback addresses | ✅ Stable |
-| Invoice errors | ⬜ Not yet implemented |
+
+## Spec Coverage
+
+### Implemented
+
+All four BOLT 12 message types are fully supported:
+
+- **Offers** (`lno`) — All TLV fields (types 2–22): chains, metadata, currency, amount, description, features, absolute expiry, paths, issuer, quantity_max, issuer_id
+- **Invoice Requests** (`lnr`) — All TLV fields (types 0, 2–22, 80–91, 240): All offer fields mirrored, plus invreq_metadata, chain, amount, features, quantity, payer_id, payer_note, paths, bip_353_name, signature
+- **Invoices** (`lni`) — All TLV fields (types 0–22, 80–91, 160–176, 240): All offer and invreq fields mirrored, plus invoice_paths, blindedpay, created_at, relative_expiry, payment_hash, amount, fallbacks, features, node_id, signature
+- **Invoice Errors** — All TLV fields (types 1, 3, 5): erroneous_field, suggested_value, error
+
+### Signature & Merkle Tree
+
+- BIP-340 Schnorr signatures for invoice requests and invoices
+- Full Merkle tree construction with LnLeaf/LnNonce/LnBranch tagged hashes
+- Signature verification with both 32-byte x-only and 33-byte compressed public keys
+
+### Intentionally Omitted
+
+The following features are mentioned in the BOLT 12 spec's "possible future extensions" section but are **not yet part of the finalized spec** and are therefore not implemented:
+
+| Feature | Reason |
+|---------|--------|
+| Offer recurrence | Removed from spec (listed as "re-add recurrence" in future extensions) |
+| `invreq_refund_for` | Removed from spec (listed as "re-add" in future extensions) |
+| `invoice_replace` | Removed from spec (listed as "re-add" in future extensions) |
+| Delivery info in offers | Listed as possible future extension (#1) |
+| Offer updates | Listed as possible future extension (#2) |
+| Shopping lists (multi-offer) | Listed as possible future extension (#4) |
+| Streaming invoices | Listed as possible future extension (#8) |
+| Raw invoices (no invreq) | Spec says "may define in future"; we don't generate them but can decode them |
+
+### Protocol-Level Features (Out of Scope)
+
+These features are part of the Lightning protocol layer, not the BOLT 12 encoding layer:
+
+- **Onion message routing** — BOLT 12 messages are transported via onion messages (BOLT 4), which is a separate protocol concern
+- **Payment execution** — Actually sending/receiving payments is handled by the Lightning node implementation
+- **Blinded path construction** — Creating new blinded paths requires onion routing primitives; this library encodes/decodes existing paths
+- **Currency conversion** — Converting `offer_currency` amounts to msat is application-specific
 
 ## Platform Support
 
 | Platform | Status |
 |----------|--------|
-| Node.js 20+ | ✅ Tested |
+| Node.js 18+ | ✅ Tested (18, 20, 22) |
 | Bun | ✅ Tested |
 | Deno | ✅ Compatible |
 | Browsers (via bundler) | ✅ Compatible |

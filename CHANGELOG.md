@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-02-15
+
+### Added
+
+- **Invoice Error encoding/decoding** — Full support for BOLT 12 `invoice_error` messages
+  - `encodeInvoiceError()` — Encode invoice errors as raw TLV bytes
+  - `decodeInvoiceError()` — Decode invoice errors from raw TLV bytes
+  - `InvoiceError` interface and `InvoiceErrorEncodeOptions` type
+  - TLV fields: `erroneous_field` (type 1), `suggested_value` (type 3), `error` (type 5)
+  - Validation: required error message, suggested_value requires erroneous_field
+  - 17 comprehensive tests for invoice error encode/decode/validation/roundtrip
+- **Spec Coverage documentation** — Comprehensive documentation of what's implemented, what's intentionally omitted, and what's out of scope
+
+### Changed
+
+- **CI configuration** — Fixed branch triggers from `main` to `master` to match actual default branch
+- **Node.js support** — Extended support down to Node.js 18 (LTS); CI now tests against Node 18, 20, 22
+- **Platform support** — Updated from "Node.js 20+" to "Node.js 18+"
+
 ## [0.1.0] - 2025-02-15
 
 ### Added

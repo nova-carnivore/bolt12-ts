@@ -1,6 +1,6 @@
 {
   "name": "bolt12-ts",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Modern TypeScript BOLT 12 Lightning Network offer/invoice encoder/decoder with zero vulnerable dependencies",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -52,7 +52,7 @@
   },
   "homepage": "https://github.com/nova-carnivore/bolt12-ts#readme",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",

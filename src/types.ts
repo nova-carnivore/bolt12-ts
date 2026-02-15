@@ -170,5 +170,26 @@ export interface MerkleTree {
   branches: Uint8Array[];
 }
 
+/**
+ * Represents a decoded BOLT 12 Invoice Error.
+ *
+ * Sent in response to an invoice_request or invoice to indicate an error.
+ * Per BOLT 12 spec, this is an informative error message transmitted
+ * via onion message `invoice_error` field.
+ *
+ * Note: Invoice errors are NOT bech32-encoded (they are only sent as raw TLV
+ * via onion messages), so they don't have a bech32m prefix.
+ */
+export interface InvoiceError {
+  /** The TLV field number that caused the error (TLV type 1, tu64). Optional. */
+  erroneousField?: bigint;
+  /** Suggested replacement value for the erroneous field (TLV type 3, variable bytes). Optional. */
+  suggestedValue?: Uint8Array;
+  /** Human-readable error message (TLV type 5, utf8). Required. */
+  error: string;
+  /** Raw TLV entries for the invoice error. */
+  tlvs: TlvEntry[];
+}
+
 // Export a union type for all decodable BOLT 12 types
 export type AnyDecodedBolt12 = DecodedOffer | DecodedInvoiceRequest | DecodedInvoice;
