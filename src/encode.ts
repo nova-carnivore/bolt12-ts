@@ -667,6 +667,6 @@ function encodeBip353Name(bip353: { name: string; domain: string }): Uint8Array 
     new Uint8Array([nameBytes.length]),
     nameBytes,
     new Uint8Array([domainBytes.length]),
-    domainBytes
+    domainBytes,
   );
 }

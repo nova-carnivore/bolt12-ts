@@ -130,7 +130,7 @@ describe('Invoice Error Encoding/Decoding', () => {
     for (let i = 1; i < decoded.tlvs.length; i++) {
       assert.ok(
         decoded.tlvs[i].type > decoded.tlvs[i - 1].type,
-        `TLV types should be ascending: ${decoded.tlvs[i - 1].type} should be < ${decoded.tlvs[i].type}`
+        `TLV types should be ascending: ${decoded.tlvs[i - 1].type} should be < ${decoded.tlvs[i].type}`,
       );
     }
   });
@@ -142,7 +142,7 @@ describe('Invoice Error Validation', () => {
   it('should reject encoding with empty error message', () => {
     assert.throws(
       () => encodeInvoiceError({ error: '' }),
-      /Invoice error must have an error message/
+      /Invoice error must have an error message/,
     );
   });
 
@@ -153,7 +153,7 @@ describe('Invoice Error Validation', () => {
           error: 'Bad field',
           suggestedValue: new Uint8Array([0x01]),
         }),
-      /Invoice error with suggested_value must also set erroneous_field/
+      /Invoice error with suggested_value must also set erroneous_field/,
     );
   });
 
@@ -176,7 +176,7 @@ describe('Invoice Error Validation', () => {
 
     assert.throws(
       () => decodeInvoiceError(tlvBytes),
-      /Invoice error has suggested_value without erroneous_field/
+      /Invoice error has suggested_value without erroneous_field/,
     );
   });
 
@@ -184,7 +184,7 @@ describe('Invoice Error Validation', () => {
     // Empty TLV stream has no error field
     assert.throws(
       () => decodeInvoiceError(new Uint8Array(0)),
-      /Invoice error must have an error message/
+      /Invoice error must have an error message/,
     );
   });
 });

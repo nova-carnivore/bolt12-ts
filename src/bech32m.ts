@@ -26,7 +26,7 @@ export function convertBits(
   data: Uint8Array,
   inBits: number,
   outBits: number,
-  pad: boolean
+  pad: boolean,
 ): Uint8Array {
   let value = 0;
   let bits = 0;

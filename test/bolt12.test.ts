@@ -22,7 +22,7 @@ import { sha256 } from '@noble/hashes/sha256';
 
 // Deterministic test keys
 const issuerPrivkey = hexToBytes(
-  'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734'
+  'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734',
 );
 const issuerPubkey = secp256k1.getPublicKey(issuerPrivkey, true);
 const payerPrivkey = hexToBytes('d7e0c73e08845e3be0bdb48b5dc7a5fc5e3e81ec4a9ae64df9214a9851f6e800');
@@ -131,21 +131,21 @@ describe('Offer Encoding/Decoding', () => {
   it('should reject offer with amount but no description', () => {
     assert.throws(
       () => encodeOffer({ issuerId: issuerPubkey, amountMsat: BigInt(1000) }),
-      /Offer with amount must have a description/
+      /Offer with amount must have a description/,
     );
   });
 
   it('should reject offer with currency but no amount', () => {
     assert.throws(
       () => encodeOffer({ issuerId: issuerPubkey, currency: 'USD', description: 'test' }),
-      /Offer with currency must have an amount/
+      /Offer with currency must have an amount/,
     );
   });
 
   it('should reject offer without issuerId or paths', () => {
     assert.throws(
       () => encodeOffer({ description: 'no issuer' }),
-      /Offer must have either issuerId or paths/
+      /Offer must have either issuerId or paths/,
     );
   });
 
@@ -265,7 +265,7 @@ describe('Invoice Request Encoding/Decoding', () => {
       decoded.tlvs,
       decoded.signature,
       decoded.payerId,
-      Bech32mPrefix.InvoiceRequest
+      Bech32mPrefix.InvoiceRequest,
     );
     assert.ok(isValid, 'Signature should be valid');
   });
@@ -411,7 +411,7 @@ describe('Invoice Encoding/Decoding', () => {
       decoded.tlvs,
       decoded.signature,
       decoded.nodeId,
-      Bech32mPrefix.Invoice
+      Bech32mPrefix.Invoice,
     );
     assert.ok(isValid, 'Invoice signature should be valid');
   });
@@ -428,7 +428,7 @@ describe('Invoice Encoding/Decoding', () => {
           invoicePaths: [blindedPath, blindedPath],
           blindedPayInfo: [payInfo],
         }),
-      /Number of invoice_paths and blinded_payinfo must match/
+      /Number of invoice_paths and blinded_payinfo must match/,
     );
   });
 });
@@ -452,7 +452,7 @@ describe('Signature Verification', () => {
       decoded.tlvs,
       decoded.signature,
       decoded.payerId,
-      Bech32mPrefix.InvoiceRequest
+      Bech32mPrefix.InvoiceRequest,
     );
     assert.ok(valid);
   });
@@ -475,7 +475,7 @@ describe('Signature Verification', () => {
       decoded.tlvs,
       decoded.signature,
       issuerPubkey,
-      Bech32mPrefix.InvoiceRequest
+      Bech32mPrefix.InvoiceRequest,
     );
     assert.strictEqual(valid, false);
   });
@@ -501,7 +501,7 @@ describe('Signature Verification', () => {
       decoded.tlvs,
       corruptedSig,
       decoded.payerId,
-      Bech32mPrefix.InvoiceRequest
+      Bech32mPrefix.InvoiceRequest,
     );
     assert.strictEqual(valid, false);
   });
@@ -513,9 +513,9 @@ describe('Signature Verification', () => {
           [],
           new Uint8Array(63), // Wrong length
           issuerPubkey,
-          Bech32mPrefix.Invoice
+          Bech32mPrefix.Invoice,
         ),
-      /Invalid signature length/
+      /Invalid signature length/,
     );
   });
 
@@ -526,9 +526,9 @@ describe('Signature Verification', () => {
           [],
           new Uint8Array(64),
           new Uint8Array(31), // Wrong length
-          Bech32mPrefix.Invoice
+          Bech32mPrefix.Invoice,
         ),
-      /Invalid public key length/
+      /Invalid public key length/,
     );
   });
 
@@ -551,7 +551,7 @@ describe('Signature Verification', () => {
       decoded.tlvs,
       decoded.signature,
       xOnlyPubkey,
-      Bech32mPrefix.InvoiceRequest
+      Bech32mPrefix.InvoiceRequest,
     );
     assert.ok(valid);
   });
@@ -803,7 +803,7 @@ describe('End-to-End Payment Flow', () => {
       invreq.tlvs,
       invreq.signature,
       invreq.payerId,
-      Bech32mPrefix.InvoiceRequest
+      Bech32mPrefix.InvoiceRequest,
     );
     assert.ok(invreqSigValid, 'Invoice request signature should be valid');
 
@@ -847,7 +847,7 @@ describe('End-to-End Payment Flow', () => {
       invoice.tlvs,
       invoice.signature,
       invoice.nodeId,
-      Bech32mPrefix.Invoice
+      Bech32mPrefix.Invoice,
     );
     assert.ok(invoiceSigValid, 'Invoice signature should be valid');
   });
