@@ -1,16 +1,13 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import {
-  encodeBolt12,
   encodeOffer,
   encodeInvoiceRequest,
   encodeInvoice,
-  encodeBlindedPaths,
-  encodeBlindedPayInfoArray,
 } from '../src/encode';
 import { encodeTlvStream } from '../src/tlv';
 import { decodeBolt12 } from '../src/decode';
-import { signBolt12, verifyBolt12Signature, computeMerkleRoot, taggedHash } from '../src/signature';
+import { verifyBolt12Signature, computeMerkleRoot, taggedHash } from '../src/signature';
 import { bolt12Encode, bolt12Decode, convertBits } from '../src/bech32m';
 import {
   Bech32mPrefix,
@@ -21,8 +18,8 @@ import {
   BlindedPath,
   BlindedPayInfo,
 } from '../src/types';
-import { hexToBytes, bytesToHex, utf8ToBytes, numberToBytesBE } from '../src/utils';
-import { schnorr, secp256k1 } from '@noble/curves/secp256k1';
+import { hexToBytes, utf8ToBytes } from '../src/utils';
+import { secp256k1 } from '@noble/curves/secp256k1';
 import { sha256 } from '@noble/hashes/sha256';
 
 // ── Test key pairs ─────────────────────────────────────────────

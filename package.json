@@ -23,7 +23,7 @@
     "test:deno": "deno test --allow-read test/*.test.ts",
     "test:browser": "npx playwright test test/browser.spec.ts",
     "test:browser:install": "npx playwright install --with-deps chromium firefox webkit",
-    "lint": "eslint src/ test/",
+    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src/ test/",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "format:check": "prettier --check 'src/**/*.ts' 'test/**/*.ts'",
     "typecheck": "tsc --noEmit",

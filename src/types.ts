@@ -13,7 +13,7 @@ export interface TlvEntry {
  * Represents a decoded TLV stream.
  */
 export interface DecodedTlvStream {
-  [key: string | number]: any; // Keys can be numerical TLV types or named fields
+  [key: string | number]: unknown; // Keys can be numerical TLV types or named fields
 }
 
 // Bech32m prefixes for different BOLT12 message types

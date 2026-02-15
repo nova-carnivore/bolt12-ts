@@ -4,7 +4,8 @@ import { encodeInvoiceError } from '../src/encode';
 import { decodeInvoiceError } from '../src/decode';
 import { encodeTu64, decodeTu64, encodeTlvStream } from '../src/tlv';
 import { utf8ToBytes, bytesToHex } from '../src/utils';
-import type { InvoiceError, TlvEntry } from '../src/types';
+// Types imported for reference only
+// import type { InvoiceError, TlvEntry } from '../src/types';
 
 // ── Invoice Error Encoding/Decoding Tests ──────────────────────
 

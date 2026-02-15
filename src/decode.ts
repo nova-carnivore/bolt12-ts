@@ -352,52 +352,6 @@ function decodeInvoiceRequest(tlvEntries: TlvEntry[]): DecodedInvoiceRequest {
   return invReq;
 }
 
-/**
- * Decodes blinded payinfo from its serialized representation.
- * Format: u32 fee_base_msat, u32 fee_proportional_millionths,
- *         u16 cltv_expiry_delta, u64 htlc_minimum_msat,
- *         u64 htlc_maximum_msat, u16 flen, flen*byte features
- */
-const decodeBlindedPayInfo = (bytes: Uint8Array): BlindedPayInfo => {
-  let offset = 0;
-
-  if (bytes.length < 22) { // 4+4+2+8+8 = 26 minimum (with empty features)
-    throw new Error('Malformed blinded_payinfo: too short');
-  }
-
-  const feeBaseMsat = bytesToNumberBE(bytes.subarray(offset, offset + 4));
-  offset += 4;
-
-  const feeProportionalMillionths = bytesToNumberBE(bytes.subarray(offset, offset + 4));
-  offset += 4;
-
-  const cltvExpiryDelta = bytesToNumberBE(bytes.subarray(offset, offset + 2));
-  offset += 2;
-
-  // htlc_minimum_msat (u64 = 8 bytes)
-  const htlcMinimumMsat = bytesToBigintBE(bytes.subarray(offset, offset + 8));
-  offset += 8;
-
-  // htlc_maximum_msat (u64 = 8 bytes)
-  const htlcMaximumMsat = bytesToBigintBE(bytes.subarray(offset, offset + 8));
-  offset += 8;
-
-  const flen = bytesToNumberBE(bytes.subarray(offset, offset + 2));
-  offset += 2;
-
-  const features = bytes.subarray(offset, offset + flen);
-  offset += flen;
-
-  return {
-    feeBaseMsat,
-    feeProportionalMillionths,
-    cltvExpiryDelta,
-    htlcMinimumMsat,
-    htlcMaximumMsat,
-    features,
-  };
-};
-
 /** Reads a big-endian u64 as bigint. */
 function bytesToBigintBE(bytes: Uint8Array): bigint {
   let num = BigInt(0);
@@ -406,24 +360,6 @@ function bytesToBigintBE(bytes: Uint8Array): bigint {
   }
   return num;
 }
-
-/**
- * Decodes a fallback address.
- * Format: byte version, u16 len, len*byte address
- */
-const decodeFallbackAddress = (bytes: Uint8Array): FallbackAddress => {
-  let offset = 0;
-
-  const version = bytes[offset];
-  offset++;
-
-  const len = bytesToNumberBE(bytes.subarray(offset, offset + 2));
-  offset += 2;
-
-  const address = bytes.subarray(offset, offset + len);
-
-  return { version, address };
-};
 
 /**
  * Decodes a BOLT 12 Invoice (lni1...).
