@@ -1,73 +1,170 @@
-env:
-  NODE_OPTIONS: "--max-old-space-size=4096"
-
 name: CI
+
 on:
   push:
-    branches: [master]
+    branches: [ main, master ]
   pull_request:
-    branches: [master]
-jobs:
-  lint-and-format:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "npm"
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run format:check
-      - run: npm run typecheck
+    branches: [ main, master ]
 
-  test-node:
+jobs:
+  test:
+    name: Test on Node.js ${{ matrix.node-version }}
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        node-version: [20, 22, 24]
+        node-version: [20.x, 22.x, 24.x]
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
-      - run: npm ci
-      - run: npm test
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: npm test
 
   test-bun:
+    name: Test on Bun
     runs-on: ubuntu-latest
     steps:
-      - uses: oven-sh/setup-bun@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Node.js (for tsc build)
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
-      - uses: actions/checkout@v4
-      - run: bun install
-      - run: bun run test:bun
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: bun test test/*.test.ts
 
   test-deno:
+    name: Test on Deno
     runs-on: ubuntu-latest
     steps:
-      - uses: denoland/setup-deno@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
         with:
-          deno-version: latest
-      - uses: actions/checkout@v4
-      - run: deno install
-      - run: deno test --no-check --unstable-sloppy-imports --allow-read test/*.test.ts
+          deno-version: v2.x
 
-  # Browser tests disabled until browser.spec.ts is created
-  # test-browser:
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       browser: [chromium, firefox, webkit]
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-  #         cache: "npm"
-  #     - run: npm ci
-  #     - run: npx playwright install ${{ matrix.browser }}
-  #     - run: npx playwright test test/browser.spec.ts --project=${{ matrix.browser }}
+      - name: Setup Node.js (for npm install + build)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
 
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: deno test --allow-read --no-check --unstable-sloppy-imports test/
+
+  test-browser:
+    name: Test in browsers (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Build
+        run: npm run build
+
+      - name: Run browser tests
+        run: npx playwright test
+
+  audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=moderate
+
+      - name: Check for outdated dependencies
+        run: npm outdated || true
+
+  publish-dry-run:
+    name: Publish dry run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Pack
+        run: npm pack
+
+      - name: Check package contents
+        run: tar -tzf *.tgz

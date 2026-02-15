@@ -1,31 +1,41 @@
 # bolt12-ts
 
+[![npm version](https://img.shields.io/npm/v/bolt12-ts)](https://www.npmjs.com/package/bolt12-ts)
 [![CI](https://github.com/nova-carnivore/bolt12-ts/actions/workflows/ci.yml/badge.svg)](https://github.com/nova-carnivore/bolt12-ts/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/bolt12-ts.svg)](https://www.npmjs.com/package/bolt12-ts)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue.svg)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
 
-Modern TypeScript BOLT 12 Lightning Network offer/invoice encoder/decoder with zero vulnerable dependencies.
+Modern TypeScript implementation of BOLT 12 Lightning Network offer/invoice encoder/decoder with a minimal dependency tree.
 
-Supports encoding and decoding of BOLT 12 **Offers** (`lno`), **Invoice Requests** (`lnr`), and **Invoices** (`lni`) with full BIP-340 Schnorr signature support and Merkle tree construction.
+## Why bolt12-ts?
 
-## Features
+BOLT 12 introduces **Offers**, a next-generation payment protocol for Lightning that enables reusable payment codes, invoice requests, and privacy-preserving blinded paths. This library provides a complete, spec-compliant implementation in TypeScript that:
 
-- **Full BOLT 12 compliance** — Offers, Invoice Requests, and Invoices
-- **BIP-340 Schnorr signatures** — Sign and verify with Merkle tree construction
-- **BIP-353 support** — Human-readable name parsing for invoice requests
-- **Bech32 encoding** — Spec-compliant (no checksum, per BOLT 12)
-- **Blinded paths** — Full encode/decode support
-- **Zero vulnerable dependencies** — Uses only `@noble/curves` and `@noble/hashes`
-- **Cross-platform** — Node.js 20+, Bun, Deno, browsers
-- **TypeScript strict mode** — Full type safety with comprehensive JSDoc
+- ✅ **Minimal dependencies** — Only depends on `@noble/curves` and `@noble/hashes` (audited, zero transitive deps)
+- ✅ **Full BOLT 12 compliance** — Offers, Invoice Requests, Invoices, and Invoice Errors
+- ✅ **BIP-340 Schnorr signatures** — Sign and verify with Merkle tree construction
+- ✅ **Modern TypeScript** — Full type safety and excellent IDE support
+- ✅ **ESM + CJS** — Works with both module systems
+- ✅ **Universal runtime** — Works in Node.js, Bun, Deno, and browsers (no polyfills needed)
+- ✅ **Well tested** — Comprehensive test suite with 70+ tests
 
 ## Installation
 
 ```bash
 npm install bolt12-ts
 ```
+
+## Runtime Compatibility
+
+| Runtime | Status | Notes |
+|---------|--------|-------|
+| **Node.js** 20+ | ✅ Tested in CI | Full support |
+| **Bun** 1.x | ✅ Tested in CI | Full support |
+| **Deno** 2.x | ✅ Tested in CI | Use `--unstable-sloppy-imports` for `.js` extensions |
+| **Browsers** (Chromium, Firefox, WebKit) | ✅ Tested in CI | Playwright tests against real browser engines |
+
+No polyfills required — uses `@noble/curves` for Schnorr signatures, `@noble/hashes` for SHA-256, and `TextEncoder`/`TextDecoder` which are all universal.
 
 ## Quick Start
 
@@ -38,17 +48,28 @@ import {
   verifyBolt12Signature,
   Bech32mPrefix,
 } from 'bolt12-ts';
+
+// Decode any BOLT 12 string
+const decoded = decodeBolt12('lno1pqps7sjqpgt...');
+console.log(decoded.prefix); // 'lno', 'lnr', or 'lni'
+
+// Encode an offer
+const offer = encodeOffer({
+  issuerId: myPublicKey,
+  description: 'Buy a coffee',
+  amountMsat: 100000n,
+});
+// → "lno1pq..."
 ```
 
-## Usage
+## API
 
-### Decoding any BOLT 12 string
+### `decodeBolt12(str: string): AnyDecodedBolt12`
+
+Decodes any BOLT 12 string (offer, invoice request, or invoice).
 
 ```typescript
-import { decodeBolt12 } from 'bolt12-ts';
-
-// Works with offers, invoice requests, and invoices
-const decoded = decodeBolt12('lno1pqps7sjqpgtyzm3qv4uxzmtsd3...');
+const decoded = decodeBolt12('lno1pqps7sjqpgt...');
 
 switch (decoded.prefix) {
   case 'lno':
@@ -63,13 +84,11 @@ switch (decoded.prefix) {
 }
 ```
 
-### Encoding an Offer
+### `encodeOffer(options: OfferEncodeOptions): string`
 
-Offers are the starting point for BOLT 12 payments. They are **not signed** per the spec.
+Creates a BOLT 12 offer. Offers are **not signed** per the spec.
 
 ```typescript
-import { encodeOffer } from 'bolt12-ts';
-
 const offer = encodeOffer({
   issuerId: myPublicKey,          // 33-byte compressed public key
   description: 'Buy a coffee',
@@ -96,15 +115,12 @@ const offer = encodeOffer({
 });
 ```
 
-### Encoding an Invoice Request
+### `encodeInvoiceRequest(options: InvoiceRequestEncodeOptions): string`
 
-Invoice requests are created by the payer in response to an offer. They are **automatically signed** using the payer's private key.
+Creates and signs a BOLT 12 invoice request.
 
 ```typescript
-import { encodeInvoiceRequest } from 'bolt12-ts';
-
 const invreq = encodeInvoiceRequest({
-  // Required fields
   invreqMetadata: crypto.getRandomValues(new Uint8Array(32)),
   payerId: myPublicKey,           // 33-byte compressed
   payerPrivateKey: myPrivateKey,  // 32-byte secret key
@@ -123,19 +139,17 @@ const invreq = encodeInvoiceRequest({
 // → "lnr1pq..."
 ```
 
-### Encoding an Invoice
+### `encodeInvoice(options: InvoiceEncodeOptions): string`
 
-Invoices are created by the merchant in response to an invoice request. They are **automatically signed** using the node's private key.
+Creates and signs a BOLT 12 invoice.
 
 ```typescript
-import { encodeInvoice } from 'bolt12-ts';
 import { sha256 } from '@noble/hashes/sha256';
 
 const preimage = crypto.getRandomValues(new Uint8Array(32));
 const paymentHash = sha256(preimage);
 
 const invoice = encodeInvoice({
-  // Required fields
   nodeId: myNodePubkey,           // 33-byte compressed
   nodePrivateKey: myNodePrivkey,  // 32-byte secret key
   createdAt: BigInt(Math.floor(Date.now() / 1000)),
@@ -148,19 +162,15 @@ const invoice = encodeInvoice({
   relativeExpiry: 3600,           // Seconds (default: 7200)
   offerDescription: 'Buy a coffee',
   offerIssuerId: myNodePubkey,
-
-  // Mirror invoice request fields
-  invreqMetadata: requestMetadata,
-  invreqPayerId: payerPubkey,
 });
 // → "lni1pq..."
 ```
 
-### Verifying Signatures
+### `verifyBolt12Signature(tlvs, signature, publicKey, prefix): boolean`
+
+Verifies a BIP-340 Schnorr signature on a BOLT 12 message.
 
 ```typescript
-import { decodeBolt12, verifyBolt12Signature, Bech32mPrefix } from 'bolt12-ts';
-
 const decoded = decodeBolt12(invoiceRequestString);
 
 if (decoded.prefix === 'lnr') {
@@ -174,9 +184,9 @@ if (decoded.prefix === 'lnr') {
 }
 ```
 
-### Invoice Errors
+### `encodeInvoiceError(options) / decodeInvoiceError(bytes)`
 
-Invoice errors are sent via onion messages to indicate problems with an `invoice_request` or `invoice`. They use raw TLV encoding (not bech32).
+Invoice errors are sent via onion messages to indicate problems with an invoice request or invoice. They use raw TLV encoding (not bech32).
 
 ```typescript
 import { encodeInvoiceError, decodeInvoiceError, encodeTu64 } from 'bolt12-ts';
@@ -202,13 +212,65 @@ const suggestedError = encodeInvoiceError({
 // Decoding an invoice error received via onion message
 const decoded = decodeInvoiceError(rawErrorBytes);
 console.log('Error:', decoded.error);
-if (decoded.erroneousField !== undefined) {
-  console.log('Problem field TLV type:', decoded.erroneousField);
-}
-if (decoded.suggestedValue) {
-  console.log('Suggested value:', decoded.suggestedValue);
-}
 ```
+
+## Supported TLV Fields
+
+### Offers (`lno`)
+
+| TLV Type | Field | Description |
+|----------|-------|-------------|
+| 2 | `offer_chains` | Chain hashes (bitcoin by default) |
+| 4 | `offer_metadata` | Arbitrary issuer metadata |
+| 6 | `offer_currency` | ISO 4217 currency code |
+| 8 | `offer_amount` | Amount in millisatoshis |
+| 10 | `offer_description` | Short UTF-8 description |
+| 12 | `offer_features` | Feature bits |
+| 14 | `offer_absolute_expiry` | Expiry as seconds from epoch |
+| 16 | `offer_paths` | Blinded paths to issuer |
+| 18 | `offer_issuer` | Human-readable issuer name |
+| 20 | `offer_quantity_max` | Max quantity per invoice |
+| 22 | `offer_issuer_id` | Issuer public key |
+
+### Invoice Requests (`lnr`)
+
+| TLV Type | Field | Description |
+|----------|-------|-------------|
+| 0 | `invreq_metadata` | Unique random metadata (required) |
+| 80 | `invreq_chain` | Chain hash |
+| 82 | `invreq_amount` | Amount in millisatoshis |
+| 84 | `invreq_features` | Feature bits |
+| 86 | `invreq_quantity` | Quantity requested |
+| 88 | `invreq_payer_id` | Payer public key (required) |
+| 89 | `invreq_payer_note` | Payer note |
+| 90 | `invreq_paths` | Payer's blinded paths |
+| 91 | `invreq_bip_353_name` | BIP-353 human-readable name |
+| 240 | `signature` | BIP-340 Schnorr signature (required) |
+
+### Invoices (`lni`)
+
+| TLV Type | Field | Description |
+|----------|-------|-------------|
+| 160 | `invoice_paths` | Blinded paths for payment (required) |
+| 162 | `invoice_blindedpay` | Blinded pay info per path (required) |
+| 164 | `invoice_created_at` | Creation timestamp (required) |
+| 166 | `invoice_relative_expiry` | Seconds from creation |
+| 168 | `invoice_payment_hash` | SHA256 payment hash (required) |
+| 170 | `invoice_amount` | Amount in millisatoshis |
+| 172 | `invoice_fallbacks` | On-chain fallback addresses |
+| 174 | `invoice_features` | Feature bits |
+| 176 | `invoice_node_id` | Node public key (required) |
+| 240 | `signature` | BIP-340 Schnorr signature (required) |
+
+### Invoice Errors
+
+| TLV Type | Field | Description |
+|----------|-------|-------------|
+| 1 | `erroneous_field` | TLV type that caused the error |
+| 3 | `suggested_value` | Suggested replacement value |
+| 5 | `error` | Human-readable error message (required) |
+
+## Examples
 
 ### Working with Blinded Paths
 
@@ -239,136 +301,59 @@ const payInfo: BlindedPayInfo = {
 };
 ```
 
-## API Reference
-
-### Decoding
-
-| Function | Description |
-|----------|-------------|
-| `decodeBolt12(str)` | Decode any BOLT 12 string (offer/invreq/invoice) |
-| `decodeInvoiceError(bytes)` | Decode a raw TLV invoice error |
-
-### Encoding
-
-| Function | Description |
-|----------|-------------|
-| `encodeOffer(options)` | Encode a BOLT 12 offer (unsigned) |
-| `encodeInvoiceRequest(options)` | Encode and sign a BOLT 12 invoice request |
-| `encodeInvoice(options)` | Encode and sign a BOLT 12 invoice |
-| `encodeInvoiceError(options)` | Encode an invoice error as raw TLV bytes |
-| `encodeBolt12({ hrp, tlvs })` | Low-level: encode raw TLVs with HRP |
-
-### Signatures
-
-| Function | Description |
-|----------|-------------|
-| `signBolt12(tlvs, privateKey, prefix)` | Sign TLVs using BIP-340 Schnorr |
-| `verifyBolt12Signature(tlvs, sig, pubkey, prefix)` | Verify a BOLT 12 signature |
-| `computeMerkleRoot(tlvs)` | Compute the Merkle root of TLV entries |
-| `taggedHash(tag, msg)` | BIP-340 tagged hash: H(tag, msg) |
-| `signatureTag(prefix, fieldName?)` | Get the signature tag string |
-
-### Types
+### End-to-End Payment Flow
 
 ```typescript
-// Decoded types
-type AnyDecodedBolt12 = DecodedOffer | DecodedInvoiceRequest | DecodedInvoice;
+import { encodeOffer, encodeInvoiceRequest, encodeInvoice, decodeBolt12 } from 'bolt12-ts';
 
-// Encoding option types
-type OfferEncodeOptions = { issuerId?, description?, amountMsat?, ... };
-type InvoiceRequestEncodeOptions = { invreqMetadata, payerId, payerPrivateKey, ... };
-type InvoiceEncodeOptions = { nodeId, nodePrivateKey, createdAt, paymentHash, ... };
+// 1. Merchant creates an offer
+const offer = encodeOffer({
+  issuerId: merchantPubkey,
+  description: 'Buy a coffee',
+  amountMsat: 100000n,
+});
 
-// Data types
-type BlindedPath = { blindingPubkey, hops: OnionMessageHop[] };
-type BlindedPayInfo = { feeBaseMsat, feeProportionalMillionths, cltvExpiryDelta, ... };
-type TlvEntry = { type: bigint, length: bigint, value: Uint8Array };
+// 2. Customer creates an invoice request
+const invreq = encodeInvoiceRequest({
+  invreqMetadata: crypto.getRandomValues(new Uint8Array(32)),
+  payerId: customerPubkey,
+  payerPrivateKey: customerPrivkey,
+  offerDescription: 'Buy a coffee',
+  offerIssuerId: merchantPubkey,
+  offerAmountMsat: 100000n,
+});
 
-// Prefixes
-enum Bech32mPrefix { Offer = 'lno', InvoiceRequest = 'lnr', Invoice = 'lni' }
+// 3. Merchant creates an invoice
+const invoice = encodeInvoice({
+  nodeId: merchantPubkey,
+  nodePrivateKey: merchantPrivkey,
+  createdAt: BigInt(Math.floor(Date.now() / 1000)),
+  paymentHash: sha256(preimage),
+  amountMsat: 100000n,
+  invoicePaths: [blindedPath],
+  blindedPayInfo: [payInfo],
+});
 ```
 
-### Low-level Utilities
+## Testing
 
-| Function | Description |
-|----------|-------------|
-| `bolt12Encode(hrp, data)` | Bech32 encode without checksum (BOLT 12) |
-| `bolt12Decode(str)` | Bech32 decode without checksum (BOLT 12) |
-| `bech32mEncode(hrp, data)` | Bech32m encode with checksum |
-| `bech32mDecode(str)` | Bech32m decode with checksum |
-| `convertBits(data, in, out, pad)` | Convert between bit widths |
-| `encodeTlvStream(tlvs)` | Encode TLV array to bytes |
-| `decodeTlvStream(bytes)` | Decode bytes to TLV array |
-| `hexToBytes(hex)` / `bytesToHex(bytes)` | Hex conversion |
+```bash
+# Run all tests
+npm test
 
-## Spec Compliance
+# Run specific test suite
+npx tsx --test test/bolt12.test.ts
+npx tsx --test test/invoice-error.test.ts
 
-This library implements [BOLT 12](https://github.com/lightning/bolts/blob/master/12-offer-encoding.md) with the following features:
+# Type check
+npm run typecheck
 
-| Feature | Status |
-|---------|--------|
-| Offer encoding/decoding | ✅ Stable |
-| Invoice Request encoding/decoding | ✅ Stable |
-| Invoice encoding/decoding | ✅ Stable |
-| Invoice Error encoding/decoding | ✅ Stable |
-| BIP-340 Schnorr signatures | ✅ Stable |
-| Merkle tree signature verification | ✅ Stable |
-| Blinded paths | ✅ Stable |
-| Blinded pay info | ✅ Stable |
-| BIP-353 name parsing | ✅ Stable |
-| Bech32 encoding (no checksum) | ✅ Stable |
-| `+` concatenation support | ✅ Stable |
-| Fallback addresses | ✅ Stable |
+# Lint
+npm run lint
 
-## Spec Coverage
-
-### Implemented
-
-All four BOLT 12 message types are fully supported:
-
-- **Offers** (`lno`) — All TLV fields (types 2–22): chains, metadata, currency, amount, description, features, absolute expiry, paths, issuer, quantity_max, issuer_id
-- **Invoice Requests** (`lnr`) — All TLV fields (types 0, 2–22, 80–91, 240): All offer fields mirrored, plus invreq_metadata, chain, amount, features, quantity, payer_id, payer_note, paths, bip_353_name, signature
-- **Invoices** (`lni`) — All TLV fields (types 0–22, 80–91, 160–176, 240): All offer and invreq fields mirrored, plus invoice_paths, blindedpay, created_at, relative_expiry, payment_hash, amount, fallbacks, features, node_id, signature
-- **Invoice Errors** — All TLV fields (types 1, 3, 5): erroneous_field, suggested_value, error
-
-### Signature & Merkle Tree
-
-- BIP-340 Schnorr signatures for invoice requests and invoices
-- Full Merkle tree construction with LnLeaf/LnNonce/LnBranch tagged hashes
-- Signature verification with both 32-byte x-only and 33-byte compressed public keys
-
-### Intentionally Omitted
-
-The following features are mentioned in the BOLT 12 spec's "possible future extensions" section but are **not yet part of the finalized spec** and are therefore not implemented:
-
-| Feature | Reason |
-|---------|--------|
-| Offer recurrence | Removed from spec (listed as "re-add recurrence" in future extensions) |
-| `invreq_refund_for` | Removed from spec (listed as "re-add" in future extensions) |
-| `invoice_replace` | Removed from spec (listed as "re-add" in future extensions) |
-| Delivery info in offers | Listed as possible future extension (#1) |
-| Offer updates | Listed as possible future extension (#2) |
-| Shopping lists (multi-offer) | Listed as possible future extension (#4) |
-| Streaming invoices | Listed as possible future extension (#8) |
-| Raw invoices (no invreq) | Spec says "may define in future"; we don't generate them but can decode them |
-
-### Protocol-Level Features (Out of Scope)
-
-These features are part of the Lightning protocol layer, not the BOLT 12 encoding layer:
-
-- **Onion message routing** — BOLT 12 messages are transported via onion messages (BOLT 4), which is a separate protocol concern
-- **Payment execution** — Actually sending/receiving payments is handled by the Lightning node implementation
-- **Blinded path construction** — Creating new blinded paths requires onion routing primitives; this library encodes/decodes existing paths
-- **Currency conversion** — Converting `offer_currency` amounts to msat is application-specific
-
-## Platform Support
-
-| Platform | Status |
-|----------|--------|
-| Node.js 20+ | ✅ Tested (20, 22, 24) |
-| Bun | ✅ Tested |
-| Deno | ✅ Compatible |
-| Browsers (via bundler) | ✅ Compatible |
+# Format
+npm run format
+```
 
 ## Development
 
@@ -376,28 +361,93 @@ These features are part of the Lightning protocol layer, not the BOLT 12 encodin
 # Install dependencies
 npm install
 
-# Run tests
-npm test                    # Node.js
-npm run test:bun            # Bun
-
 # Build
 npm run build
 
-# Type check
-npm run typecheck
+# Run tests with coverage
+npm test -- --experimental-test-coverage
 
-# Lint & format
-npm run lint
+# Format code
 npm run format
 ```
 
+## Specification
+
+This library implements [BOLT #12: Offer Protocol](https://github.com/lightning/bolts/blob/master/12-offer-encoding.md).
+
+### Implemented
+
+All four BOLT 12 message types are fully supported:
+
+- **Offers** (`lno`) — All TLV fields (types 2–22)
+- **Invoice Requests** (`lnr`) — All TLV fields (types 0, 2–22, 80–91, 240)
+- **Invoices** (`lni`) — All TLV fields (types 0–22, 80–91, 160–176, 240)
+- **Invoice Errors** — All TLV fields (types 1, 3, 5)
+
+### Signature & Merkle Tree
+
+- BIP-340 Schnorr signatures for invoice requests and invoices
+- Full Merkle tree construction with `LnLeaf`/`LnNonce`/`LnBranch` tagged hashes
+- Signature verification with both 32-byte x-only and 33-byte compressed public keys
+
+### Intentionally Omitted
+
+Features from the spec's "possible future extensions" section:
+
+| Feature | Reason |
+|---------|--------|
+| Offer recurrence | Removed from spec |
+| `invreq_refund_for` | Removed from spec |
+| Delivery info | Future extension |
+| Shopping lists | Future extension |
+| Streaming invoices | Future extension |
+
+### Protocol-Level Features (Out of Scope)
+
+- **Onion message routing** — Separate protocol concern (BOLT 4)
+- **Payment execution** — Handled by Lightning node implementations
+- **Blinded path construction** — Requires onion routing primitives; this library encodes/decodes existing paths
+- **Currency conversion** — Application-specific
+
+## Security
+
+### Minimal Dependency Tree
+
+This library has two production dependencies, both from the audited [@noble](https://paulmillr.com/noble/) family by Paul Miller:
+
+- [`@noble/curves`](https://github.com/paulmillr/noble-curves) — BIP-340 Schnorr signatures
+- [`@noble/hashes`](https://github.com/paulmillr/noble-hashes) — SHA-256 hashing
+
+Both have zero transitive dependencies, are audited, and work across all runtimes. A minimal dependency tree reduces the attack surface.
+
+### Reporting Vulnerabilities
+
+If you discover a security vulnerability, please [open a GitHub issue](https://github.com/nova-carnivore/bolt12-ts/issues).
+
 ## License
 
-MIT
+MIT © Nova Carnivore
 
-## Related
+## Contributing
 
-- [bolt11-ts](https://github.com/nicovalji/bolt11-ts) — BOLT 11 invoice encoder/decoder
-- [@noble/curves](https://github.com/paulmillr/noble-curves) — Elliptic curve cryptography
-- [@noble/hashes](https://github.com/paulmillr/noble-hashes) — Hash functions
-- [BOLT 12 Spec](https://github.com/lightning/bolts/blob/master/12-offer-encoding.md) — Full specification
+Contributions welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass: `npm test`
+5. Format code: `npm run format`
+6. Submit a pull request
+
+## Acknowledgments
+
+- [BOLT 12 specification](https://github.com/lightning/bolts/blob/master/12-offer-encoding.md) authors
+- [@noble/curves](https://github.com/paulmillr/noble-curves) and [@noble/hashes](https://github.com/paulmillr/noble-hashes) by Paul Miller
+
+## See Also
+
+- [bolt11-ts](https://github.com/nova-carnivore/bolt11-ts) — BOLT 11 invoice encoder/decoder (companion library)
+- [BOLT Specifications](https://github.com/lightning/bolts)
+- [Lightning Network](https://lightning.network/)
+- [BIP-340: Schnorr Signatures](https://github.com/bitcoin/bips/blob/master/bip-0340.mediawiki)
+- [BIP-173: Bech32](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki)

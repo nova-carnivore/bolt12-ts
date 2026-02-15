@@ -18,15 +18,16 @@
   ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
-    "test": "node --import tsx/esm --test test/*.test.ts",
+    "test": "npm run build && tsx --test test/*.test.ts",
+    "test:coverage": "npm run build && node --test --experimental-test-coverage dist/**/*.test.js",
     "test:bun": "bun test test/*.test.ts",
     "test:deno": "deno test --no-check --unstable-sloppy-imports --allow-read test/*.test.ts",
-    "test:browser": "npx playwright test test/browser.spec.ts",
+    "test:browser": "npx playwright test",
     "test:browser:install": "npx playwright install --with-deps chromium firefox webkit",
-    "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src/ test/",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
     "format:check": "prettier --check 'src/**/*.ts' 'test/**/*.ts'",
-    "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build && npm run test && npm run typecheck"
   },
   "keywords": [
@@ -45,7 +46,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nova-carnivore/bolt12-ts.git"
+    "url": "https://github.com/nova-carnivore/bolt12-ts.git"
   },
   "bugs": {
     "url": "https://github.com/nova-carnivore/bolt12-ts/issues"
@@ -70,8 +71,5 @@
   "dependencies": {
     "@noble/curves": "^1.9.7",
     "@noble/hashes": "^1.8.0"
-  },
-  "directories": {
-    "test": "test"
   }
 }

@@ -17,12 +17,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Validation: required error message, suggested_value requires erroneous_field
   - 17 comprehensive tests for invoice error encode/decode/validation/roundtrip
 - **Spec Coverage documentation** — Comprehensive documentation of what's implemented, what's intentionally omitted, and what's out of scope
+- **Browser tests** — Playwright tests for Chromium, Firefox, and WebKit
+- **Security audit CI job** — `npm audit` and outdated dependency checks
+- **Publish dry run CI job** — Verifies package builds and packs correctly
 
 ### Changed
 
-- **CI configuration** — Fixed branch triggers from `main` to `master` to match actual default branch
+- **README** — Rewritten for consistency with bolt11-ts: "Why" section, runtime compatibility table, comprehensive API docs, examples, security section, contributing guide, acknowledgments
+- **CI configuration** — Aligned with bolt11-ts: named jobs, Deno/browser test structure, audit and publish-dry-run jobs
+- **ESLint config** — Migrated from `.eslintrc.cjs` to `.eslintrc.json` for consistency with bolt11-ts
+- **Prettier config** — Added `useTabs`, `arrowParens`, and `endOfLine` fields for consistency
+- **TypeScript config** — Upgraded target from ES2020 to ES2022, added `declarationMap`, `sourceMap`, `rootDir`, `noUnusedLocals`, `noUnusedParameters`, `noImplicitReturns`, `noFallthroughCasesInSwitch`; removed `dom` lib (not needed)
+- **Test script** — Aligned with bolt11-ts: `npm run build && tsx --test` pattern
+- **Lint script** — Simplified from `ESLINT_USE_FLAT_CONFIG=false eslint src/ test/` to `eslint .`
+- **`.gitignore`** — Expanded to match bolt11-ts with editor, OS, log, and environment entries
+- **Badge order** — npm version badge first (matching bolt11-ts convention)
 - **Node.js support** — Updated to Node.js 20+ (Node 18 EOL April 2025); CI now tests against Node 20, 22, 24
-- **README** — Added professional badges (CI, npm, license, TypeScript, Node.js)
 
 ## [0.1.0] - 2025-02-15
 
