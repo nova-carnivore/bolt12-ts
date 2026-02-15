@@ -27,11 +27,7 @@ export function taggedHash(tag: string, msg: Uint8Array): Uint8Array {
  * This is used for Merkle tree leaf computation.
  */
 function serializeTlv(tlv: TlvEntry): Uint8Array {
-  return concatBytes(
-    encodeBigSize(tlv.type),
-    encodeBigSize(BigInt(tlv.value.length)),
-    tlv.value,
-  );
+  return concatBytes(encodeBigSize(tlv.type), encodeBigSize(BigInt(tlv.value.length)), tlv.value);
 }
 
 /**
@@ -190,7 +186,7 @@ export function signatureTag(prefix: Bech32mPrefix, fieldName: string = 'signatu
 export function signBolt12(
   tlvs: TlvEntry[],
   privateKey: Uint8Array,
-  prefix: Bech32mPrefix,
+  prefix: Bech32mPrefix
 ): Uint8Array {
   // Filter out signature TLVs (types 240-1000)
   const nonSigTlvs = tlvs.filter((t) => Number(t.type) < 240 || Number(t.type) > 1000);
@@ -216,7 +212,7 @@ export function verifyBolt12Signature(
   tlvs: TlvEntry[],
   signature: Uint8Array,
   publicKey: Uint8Array,
-  prefix: Bech32mPrefix,
+  prefix: Bech32mPrefix
 ): boolean {
   if (signature.length !== 64) {
     throw new Error(`Invalid signature length: expected 64 bytes, got ${signature.length}`);

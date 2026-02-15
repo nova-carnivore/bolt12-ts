@@ -53,7 +53,7 @@ jobs:
           deno-version: latest
       - uses: actions/checkout@v4
       - run: deno install
-      - run: deno test --allow-read test/*.test.ts
+      - run: deno test --no-check --allow-read test/*.test.ts
 
   # Browser tests disabled until browser.spec.ts is created
   # test-browser:

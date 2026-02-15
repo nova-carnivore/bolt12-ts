@@ -1,10 +1,6 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import {
-  encodeOffer,
-  encodeInvoiceRequest,
-  encodeInvoice,
-} from '../src/encode';
+import { encodeOffer, encodeInvoiceRequest, encodeInvoice } from '../src/encode';
 import { encodeTlvStream } from '../src/tlv';
 import { decodeBolt12 } from '../src/decode';
 import { verifyBolt12Signature, computeMerkleRoot, taggedHash } from '../src/signature';
@@ -25,7 +21,9 @@ import { sha256 } from '@noble/hashes/sha256';
 // ── Test key pairs ─────────────────────────────────────────────
 
 // Deterministic test keys
-const issuerPrivkey = hexToBytes('e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734');
+const issuerPrivkey = hexToBytes(
+  'e126f68f7eafcc8b74f54d269fe206be715000f94dac067d1c04a8ca3b2db734'
+);
 const issuerPubkey = secp256k1.getPublicKey(issuerPrivkey, true);
 const payerPrivkey = hexToBytes('d7e0c73e08845e3be0bdb48b5dc7a5fc5e3e81ec4a9ae64df9214a9851f6e800');
 const payerPubkey = secp256k1.getPublicKey(payerPrivkey, true);
@@ -36,7 +34,7 @@ function randomBytes(n: number): Uint8Array {
   // Deterministic pseudo-random for reproducible tests
   const buf = new Uint8Array(n);
   for (let i = 0; i < n; i++) {
-    buf[i] = ((i * 137 + 43) % 256);
+    buf[i] = (i * 137 + 43) % 256;
   }
   return buf;
 }
@@ -89,10 +87,12 @@ describe('Offer Encoding/Decoding', () => {
     const blindingPubkey = issuerPubkey;
     const nodeId = payerPubkey;
     const tlvPayload = randomBytes(16);
-    const paths: BlindedPath[] = [{
-      blindingPubkey,
-      hops: [{ nodeId, tlvPayload }],
-    }];
+    const paths: BlindedPath[] = [
+      {
+        blindingPubkey,
+        hops: [{ nodeId, tlvPayload }],
+      },
+    ];
 
     const encoded = encodeOffer({
       issuerId: issuerPubkey,
@@ -131,29 +131,31 @@ describe('Offer Encoding/Decoding', () => {
   it('should reject offer with amount but no description', () => {
     assert.throws(
       () => encodeOffer({ issuerId: issuerPubkey, amountMsat: BigInt(1000) }),
-      /Offer with amount must have a description/,
+      /Offer with amount must have a description/
     );
   });
 
   it('should reject offer with currency but no amount', () => {
     assert.throws(
       () => encodeOffer({ issuerId: issuerPubkey, currency: 'USD', description: 'test' }),
-      /Offer with currency must have an amount/,
+      /Offer with currency must have an amount/
     );
   });
 
   it('should reject offer without issuerId or paths', () => {
     assert.throws(
       () => encodeOffer({ description: 'no issuer' }),
-      /Offer must have either issuerId or paths/,
+      /Offer must have either issuerId or paths/
     );
   });
 
   it('should handle offer with paths but no issuerId', () => {
-    const paths: BlindedPath[] = [{
-      blindingPubkey: issuerPubkey,
-      hops: [{ nodeId: payerPubkey, tlvPayload: randomBytes(8) }],
-    }];
+    const paths: BlindedPath[] = [
+      {
+        blindingPubkey: issuerPubkey,
+        hops: [{ nodeId: payerPubkey, tlvPayload: randomBytes(8) }],
+      },
+    ];
 
     const encoded = encodeOffer({ paths, description: 'path-only offer' });
     const decoded = decodeBolt12(encoded) as DecodedOffer;
@@ -263,7 +265,7 @@ describe('Invoice Request Encoding/Decoding', () => {
       decoded.tlvs,
       decoded.signature,
       decoded.payerId,
-      Bech32mPrefix.InvoiceRequest,
+      Bech32mPrefix.InvoiceRequest
     );
     assert.ok(isValid, 'Signature should be valid');
   });
@@ -276,10 +278,12 @@ describe('Invoice Encoding/Decoding', () => {
 
   const blindedPath: BlindedPath = {
     blindingPubkey: issuerPubkey,
-    hops: [{
-      nodeId: payerPubkey,
-      tlvPayload: randomBytes(16),
-    }],
+    hops: [
+      {
+        nodeId: payerPubkey,
+        tlvPayload: randomBytes(16),
+      },
+    ],
   };
 
   const payInfo: BlindedPayInfo = {
@@ -407,23 +411,24 @@ describe('Invoice Encoding/Decoding', () => {
       decoded.tlvs,
       decoded.signature,
       decoded.nodeId,
-      Bech32mPrefix.Invoice,
+      Bech32mPrefix.Invoice
     );
     assert.ok(isValid, 'Invoice signature should be valid');
   });
 
   it('should reject invoice with mismatched paths and payinfo counts', () => {
     assert.throws(
-      () => encodeInvoice({
-        nodeId: issuerPubkey,
-        nodePrivateKey: issuerPrivkey,
-        createdAt: BigInt(1700000000),
-        paymentHash,
-        amountMsat: BigInt(100000),
-        invoicePaths: [blindedPath, blindedPath],
-        blindedPayInfo: [payInfo],
-      }),
-      /Number of invoice_paths and blinded_payinfo must match/,
+      () =>
+        encodeInvoice({
+          nodeId: issuerPubkey,
+          nodePrivateKey: issuerPrivkey,
+          createdAt: BigInt(1700000000),
+          paymentHash,
+          amountMsat: BigInt(100000),
+          invoicePaths: [blindedPath, blindedPath],
+          blindedPayInfo: [payInfo],
+        }),
+      /Number of invoice_paths and blinded_payinfo must match/
     );
   });
 });
@@ -447,7 +452,7 @@ describe('Signature Verification', () => {
       decoded.tlvs,
       decoded.signature,
       decoded.payerId,
-      Bech32mPrefix.InvoiceRequest,
+      Bech32mPrefix.InvoiceRequest
     );
     assert.ok(valid);
   });
@@ -470,7 +475,7 @@ describe('Signature Verification', () => {
       decoded.tlvs,
       decoded.signature,
       issuerPubkey,
-      Bech32mPrefix.InvoiceRequest,
+      Bech32mPrefix.InvoiceRequest
     );
     assert.strictEqual(valid, false);
   });
@@ -496,32 +501,34 @@ describe('Signature Verification', () => {
       decoded.tlvs,
       corruptedSig,
       decoded.payerId,
-      Bech32mPrefix.InvoiceRequest,
+      Bech32mPrefix.InvoiceRequest
     );
     assert.strictEqual(valid, false);
   });
 
   it('should throw on invalid signature length', () => {
     assert.throws(
-      () => verifyBolt12Signature(
-        [],
-        new Uint8Array(63), // Wrong length
-        issuerPubkey,
-        Bech32mPrefix.Invoice,
-      ),
-      /Invalid signature length/,
+      () =>
+        verifyBolt12Signature(
+          [],
+          new Uint8Array(63), // Wrong length
+          issuerPubkey,
+          Bech32mPrefix.Invoice
+        ),
+      /Invalid signature length/
     );
   });
 
   it('should throw on invalid public key length', () => {
     assert.throws(
-      () => verifyBolt12Signature(
-        [],
-        new Uint8Array(64),
-        new Uint8Array(31), // Wrong length
-        Bech32mPrefix.Invoice,
-      ),
-      /Invalid public key length/,
+      () =>
+        verifyBolt12Signature(
+          [],
+          new Uint8Array(64),
+          new Uint8Array(31), // Wrong length
+          Bech32mPrefix.Invoice
+        ),
+      /Invalid public key length/
     );
   });
 
@@ -544,7 +551,7 @@ describe('Signature Verification', () => {
       decoded.tlvs,
       decoded.signature,
       xOnlyPubkey,
-      Bech32mPrefix.InvoiceRequest,
+      Bech32mPrefix.InvoiceRequest
     );
     assert.ok(valid);
   });
@@ -554,9 +561,7 @@ describe('Signature Verification', () => {
 
 describe('Merkle Tree', () => {
   it('should compute merkle root for a single TLV', () => {
-    const tlvs: TlvEntry[] = [
-      { type: BigInt(10), length: BigInt(5), value: utf8ToBytes('hello') },
-    ];
+    const tlvs: TlvEntry[] = [{ type: BigInt(10), length: BigInt(5), value: utf8ToBytes('hello') }];
     const root = computeMerkleRoot(tlvs);
     assert.strictEqual(root.length, 32);
   });
@@ -572,21 +577,15 @@ describe('Merkle Tree', () => {
   });
 
   it('should produce consistent results', () => {
-    const tlvs: TlvEntry[] = [
-      { type: BigInt(10), length: BigInt(4), value: utf8ToBytes('test') },
-    ];
+    const tlvs: TlvEntry[] = [{ type: BigInt(10), length: BigInt(4), value: utf8ToBytes('test') }];
     const root1 = computeMerkleRoot(tlvs);
     const root2 = computeMerkleRoot(tlvs);
     assert.deepStrictEqual(root1, root2);
   });
 
   it('should produce different results for different TLVs', () => {
-    const tlvs1: TlvEntry[] = [
-      { type: BigInt(10), length: BigInt(4), value: utf8ToBytes('aaaa') },
-    ];
-    const tlvs2: TlvEntry[] = [
-      { type: BigInt(10), length: BigInt(4), value: utf8ToBytes('bbbb') },
-    ];
+    const tlvs1: TlvEntry[] = [{ type: BigInt(10), length: BigInt(4), value: utf8ToBytes('aaaa') }];
+    const tlvs2: TlvEntry[] = [{ type: BigInt(10), length: BigInt(4), value: utf8ToBytes('bbbb') }];
     const root1 = computeMerkleRoot(tlvs1);
     const root2 = computeMerkleRoot(tlvs2);
     assert.notDeepStrictEqual(root1, root2);
@@ -632,10 +631,7 @@ describe('BOLT 12 Bech32 (no checksum)', () => {
   });
 
   it('should reject mixed case', () => {
-    assert.throws(
-      () => bolt12Decode('Lno1pq'),
-      /Mixed case/,
-    );
+    assert.throws(() => bolt12Decode('Lno1pq'), /Mixed case/);
   });
 
   it('should handle uppercase', () => {
@@ -649,10 +645,7 @@ describe('BOLT 12 Bech32 (no checksum)', () => {
   it('should reject unknown HRP in decodeBolt12', () => {
     const data = new Uint8Array([1, 2, 3, 4]);
     const encoded = bolt12Encode('unk', data);
-    assert.throws(
-      () => decodeBolt12(encoded),
-      /Unknown BOLT 12 HRP/,
-    );
+    assert.throws(() => decodeBolt12(encoded), /Unknown BOLT 12 HRP/);
   });
 });
 
@@ -699,17 +692,11 @@ describe('BIP-353 Name Parsing', () => {
 
 describe('Error Handling', () => {
   it('should throw on empty string', () => {
-    assert.throws(
-      () => decodeBolt12(''),
-      /Failed to decode bolt12 string/,
-    );
+    assert.throws(() => decodeBolt12(''), /Failed to decode bolt12 string/);
   });
 
   it('should throw on garbage input', () => {
-    assert.throws(
-      () => decodeBolt12('not-a-bolt12-string'),
-      /Failed to decode bolt12 string/,
-    );
+    assert.throws(() => decodeBolt12('not-a-bolt12-string'), /Failed to decode bolt12 string/);
   });
 
   it('should throw on too-short invoice request (missing metadata)', () => {
@@ -721,10 +708,7 @@ describe('Error Handling', () => {
     const tlvBytes = encodeTlvStream(tlvs);
     const fiveBitWords = convertBits(tlvBytes, 8, 5, true);
     const encoded = bolt12Encode('lnr', fiveBitWords);
-    assert.throws(
-      () => decodeBolt12(encoded),
-      /Invoice request must have invreq_metadata/,
-    );
+    assert.throws(() => decodeBolt12(encoded), /Invoice request must have invreq_metadata/);
   });
 });
 
@@ -768,9 +752,7 @@ describe('Multiple Blinded Paths', () => {
     };
     const path2: BlindedPath = {
       blindingPubkey: payerPubkey,
-      hops: [
-        { nodeId: issuerPubkey, tlvPayload: randomBytes(12) },
-      ],
+      hops: [{ nodeId: issuerPubkey, tlvPayload: randomBytes(12) }],
     };
 
     const encoded = encodeOffer({
@@ -821,7 +803,7 @@ describe('End-to-End Payment Flow', () => {
       invreq.tlvs,
       invreq.signature,
       invreq.payerId,
-      Bech32mPrefix.InvoiceRequest,
+      Bech32mPrefix.InvoiceRequest
     );
     assert.ok(invreqSigValid, 'Invoice request signature should be valid');
 
@@ -865,7 +847,7 @@ describe('End-to-End Payment Flow', () => {
       invoice.tlvs,
       invoice.signature,
       invoice.nodeId,
-      Bech32mPrefix.Invoice,
+      Bech32mPrefix.Invoice
     );
     assert.ok(invoiceSigValid, 'Invoice signature should be valid');
   });

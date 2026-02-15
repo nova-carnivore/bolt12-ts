@@ -34,9 +34,7 @@ export {
 } from './signature.js';
 
 // ── Types ──────────────────────────────────────────────────────
-export {
-  Bech32mPrefix,
-} from './types.js';
+export { Bech32mPrefix } from './types.js';
 export type {
   TlvEntry,
   DecodedTlvStream,

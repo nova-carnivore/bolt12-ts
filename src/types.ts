@@ -18,9 +18,9 @@ export interface DecodedTlvStream {
 
 // Bech32m prefixes for different BOLT12 message types
 export enum Bech32mPrefix {
-  Offer = "lno",
-  InvoiceRequest = "lnr",
-  Invoice = "lni",
+  Offer = 'lno',
+  InvoiceRequest = 'lnr',
+  Invoice = 'lni',
 }
 
 /**

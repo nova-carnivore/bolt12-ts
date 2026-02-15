@@ -87,7 +87,8 @@ const parseCommonTlvs = (tlvEntries: TlvEntry[]): Partial<BaseBolt12> => {
   const common: Partial<BaseBolt12> = {};
   for (const tlv of tlvEntries) {
     switch (Number(tlv.type)) {
-      case 2: { // chains
+      case 2: {
+        // chains
         const chains: Uint8Array[] = [];
         for (let i = 0; i < tlv.value.length; i += 32) {
           chains.push(tlv.value.subarray(i, i + 32));
@@ -131,7 +132,8 @@ const decodeBlindedPaths = (bytes: Uint8Array): BlindedPath[] => {
   let offset = 0;
   while (offset < bytes.length) {
     // Blinding Pubkey (33 bytes)
-    if (offset + 33 > bytes.length) throw new Error('Malformed blinded path: missing blinding_pubkey');
+    if (offset + 33 > bytes.length)
+      throw new Error('Malformed blinded path: missing blinding_pubkey');
     const blindingPubkey = bytes.subarray(offset, offset + 33);
     offset += 33;
 
@@ -143,17 +145,20 @@ const decodeBlindedPaths = (bytes: Uint8Array): BlindedPath[] => {
     const hops: OnionMessageHop[] = [];
     for (let i = 0; i < numHops; i++) {
       // Node ID (33 bytes)
-      if (offset + 33 > bytes.length) throw new Error('Malformed blinded path: missing hop node_id');
+      if (offset + 33 > bytes.length)
+        throw new Error('Malformed blinded path: missing hop node_id');
       const nodeId = bytes.subarray(offset, offset + 33);
       offset += 33;
 
       // encrypted_data_len (u16 big-endian)
-      if (offset + 2 > bytes.length) throw new Error('Malformed blinded path: missing encrypted_data_len');
+      if (offset + 2 > bytes.length)
+        throw new Error('Malformed blinded path: missing encrypted_data_len');
       const tlvPayloadLen = (bytes[offset] << 8) | bytes[offset + 1];
       offset += 2;
 
       // encrypted_data
-      if (offset + tlvPayloadLen > bytes.length) throw new Error('Malformed blinded path: truncated encrypted_data');
+      if (offset + tlvPayloadLen > bytes.length)
+        throw new Error('Malformed blinded path: truncated encrypted_data');
       const tlvPayload = bytes.subarray(offset, offset + tlvPayloadLen);
       offset += tlvPayloadLen;
 
@@ -176,7 +181,8 @@ function parseBip353Name(bytes: Uint8Array): { name: string; domain: string } {
   const nameLen = bytes[offset];
   offset += 1;
 
-  if (offset + nameLen > bytes.length) throw new Error('Malformed invreq_bip_353_name: truncated name');
+  if (offset + nameLen > bytes.length)
+    throw new Error('Malformed invreq_bip_353_name: truncated name');
   const name = bytesToUtf8(bytes.subarray(offset, offset + nameLen));
   offset += nameLen;
 
@@ -184,7 +190,8 @@ function parseBip353Name(bytes: Uint8Array): { name: string; domain: string } {
   const domainLen = bytes[offset];
   offset += 1;
 
-  if (offset + domainLen > bytes.length) throw new Error('Malformed invreq_bip_353_name: truncated domain');
+  if (offset + domainLen > bytes.length)
+    throw new Error('Malformed invreq_bip_353_name: truncated domain');
   const domain = bytesToUtf8(bytes.subarray(offset, offset + domainLen));
   offset += domainLen;
 
@@ -216,7 +223,8 @@ function decodeOffer(tlvEntries: TlvEntry[]): DecodedOffer {
 
   for (const tlv of tlvEntries) {
     switch (Number(tlv.type)) {
-      case 2: { // offer_chains
+      case 2: {
+        // offer_chains
         if (!offer.chains) offer.chains = [];
         for (let i = 0; i < tlv.value.length; i += 32) {
           offer.chains.push(tlv.value.subarray(i, i + 32));
@@ -386,7 +394,8 @@ function decodeInvoice(tlvEntries: TlvEntry[]): DecodedInvoice {
       case 160: // invoice_paths
         invoice.invoicePaths = decodeBlindedPaths(tlv.value);
         break;
-      case 162: { // invoice_blindedpay
+      case 162: {
+        // invoice_blindedpay
         // Each payinfo is concatenated; parse sequentially
         invoice.blindedPayInfo = parseBlindedPayInfoArray(tlv.value);
         break;
@@ -403,7 +412,8 @@ function decodeInvoice(tlvEntries: TlvEntry[]): DecodedInvoice {
       case 170: // invoice_amount
         invoice.amountMsat = decodeTu64(tlv.value);
         break;
-      case 172: { // invoice_fallbacks
+      case 172: {
+        // invoice_fallbacks
         invoice.fallbacks = parseFallbackAddresses(tlv.value);
         break;
       }
@@ -442,7 +452,8 @@ function decodeInvoice(tlvEntries: TlvEntry[]): DecodedInvoice {
         invoice.invreqBip353Name = parseBip353Name(tlv.value);
         break;
       // Mirrored Offer fields
-      case 2: { // offer_chains
+      case 2: {
+        // offer_chains
         if (!invoice.offerChains) invoice.offerChains = [];
         for (let i = 0; i < tlv.value.length; i += 32) {
           invoice.offerChains.push(tlv.value.subarray(i, i + 32));

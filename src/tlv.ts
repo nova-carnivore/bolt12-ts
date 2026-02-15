@@ -108,12 +108,13 @@ export function decodeBigSize(bytes: Uint8Array, offset: number): [bigint, numbe
     if (offset + 5 > bytes.length) {
       throw new Error('Invalid BigSize: truncated u32');
     }
-    const val = BigInt(
-      (bytes[offset + 1] << 24) |
-      (bytes[offset + 2] << 16) |
-      (bytes[offset + 3] << 8) |
-      bytes[offset + 4],
-    ) & BigInt(0xffffffff); // Ensure unsigned
+    const val =
+      BigInt(
+        (bytes[offset + 1] << 24) |
+          (bytes[offset + 2] << 16) |
+          (bytes[offset + 3] << 8) |
+          bytes[offset + 4]
+      ) & BigInt(0xffffffff); // Ensure unsigned
     if (val < BigInt(0x10000)) {
       throw new Error('Invalid BigSize: non-minimal encoding');
     }

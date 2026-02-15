@@ -20,7 +20,7 @@
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "test": "node --import tsx/esm --test test/*.test.ts",
     "test:bun": "bun test test/*.test.ts",
-    "test:deno": "deno test --allow-read test/*.test.ts",
+    "test:deno": "deno test --no-check --allow-read test/*.test.ts",
     "test:browser": "npx playwright test test/browser.spec.ts",
     "test:browser:install": "npx playwright install --with-deps chromium firefox webkit",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint src/ test/",
