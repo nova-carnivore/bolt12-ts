@@ -1,7 +1,7 @@
 {
   "name": "bolt12-ts",
   "version": "0.2.0",
-  "description": "Modern TypeScript BOLT 12 Lightning Network offer/invoice encoder/decoder with zero vulnerable dependencies",
+  "description": "Modern TypeScript BOLT 12 Lightning Network offer/invoice encoder/decoder",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
