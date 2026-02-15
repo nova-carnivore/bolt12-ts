@@ -1,0 +1,77 @@
+{
+  "name": "bolt12-ts",
+  "version": "0.1.0",
+  "description": "Modern TypeScript BOLT 12 Lightning Network offer/invoice encoder/decoder with zero vulnerable dependencies",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "test": "node --import tsx/esm --test test/*.test.ts",
+    "test:bun": "bun test test/*.test.ts",
+    "test:deno": "deno test --allow-read test/*.test.ts",
+    "test:browser": "npx playwright test test/browser.spec.ts",
+    "test:browser:install": "npx playwright install --with-deps chromium firefox webkit",
+    "lint": "eslint src/ test/",
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
+    "format:check": "prettier --check 'src/**/*.ts' 'test/**/*.ts'",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm run test && npm run typecheck"
+  },
+  "keywords": [
+    "lightning",
+    "bitcoin",
+    "bolt12",
+    "offer",
+    "invoice",
+    "payment",
+    "bech32m",
+    "schnorr",
+    "secp256k1",
+    "tlv"
+  ],
+  "author": "Nova Carnivore",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nova-carnivore/bolt12-ts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nova-carnivore/bolt12-ts/issues"
+  },
+  "homepage": "https://github.com/nova-carnivore/bolt12-ts#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^20.19.33",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "esbuild": "^0.27.3",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.8.1",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@noble/curves": "^1.9.7",
+    "@noble/hashes": "^1.8.0"
+  },
+  "directories": {
+    "test": "test"
+  }
+}
